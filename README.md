@@ -1,3 +1,3 @@
 # RNTabBars
 
-[![microInteractionTabs](res/microInteractionTabs.gif)]
+![](res/microInteractionTabs.gif)
