@@ -24,7 +24,7 @@ type Props = {
   index: number;
   navigation: NavigationHelpers<ParamListBase, BottomTabNavigationEventMap>;
   state: TabNavigationState<ParamListBase>;
-  onClick: (label: string) => void;
+  onClick: (label: string, type: 'in' | 'out') => void;
 };
 
 const Tab: FC<Props> = ({descriptors, index, navigation, state, onClick}) => {
@@ -67,9 +67,7 @@ const Tab: FC<Props> = ({descriptors, index, navigation, state, onClick}) => {
   const isFocused = state.index === index;
 
   const onPress = () => {
-    onClick(label as string);
-    animate();
-    const event = navigation.emit({
+    /*  const event = navigation.emit({
       type: 'tabPress',
       target: state.routes[index].key,
       canPreventDefault: true,
@@ -78,7 +76,7 @@ const Tab: FC<Props> = ({descriptors, index, navigation, state, onClick}) => {
     if (!isFocused && !event.defaultPrevented) {
       // The `merge: true` option makes sure that the params inside the tab screen are preserved
       navigation.navigate({name: state.routes[index].name, merge: true});
-    }
+    } */
   };
 
   const onLongPress = () => {
@@ -88,9 +86,21 @@ const Tab: FC<Props> = ({descriptors, index, navigation, state, onClick}) => {
     });
   };
 
-  const _onPressIn = () => {};
+  const _onPressIn = () => {
+    //console.debug('_onPressIn');
+    onClick(label as string, 'in');
+  };
 
-  const _onPressOut = () => {};
+  const _onPressOut = () => {
+    //console.debug('_onPressOut');
+    onClick(label as string, 'out');
+    animate();
+
+    if (!isFocused) {
+      // The `merge: true` option makes sure that the params inside the tab screen are preserved
+      navigation.navigate({name: state.routes[index].name, merge: true});
+    }
+  };
 
   return (
     <TouchableOpacity

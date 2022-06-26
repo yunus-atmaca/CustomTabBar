@@ -1,4 +1,4 @@
-import React, {FC} from 'react';
+import React, {FC, useEffect} from 'react';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {StyleSheet, View} from 'react-native';
 import Animated, {
@@ -17,6 +17,12 @@ const MicroInteractionTabs: FC<BottomTabBarProps> = ({
   descriptors,
   navigation,
 }) => {
+  useEffect(() => {
+    rotateY.value = 0;
+    width.value = Constants.S_WIDTH;
+    height.value = Constants.TAB_HEIGHT_F;
+  }, []);
+
   const rotateY = useSharedValue(0);
   const width = useSharedValue(Constants.S_WIDTH);
   const height = useSharedValue(Constants.TAB_HEIGHT_F);
@@ -28,46 +34,46 @@ const MicroInteractionTabs: FC<BottomTabBarProps> = ({
     };
   });
 
-  const animate = (toValue: number) => {
-    rotateY.value = 0;
-    rotateY.value = withRepeat(
-      withTiming(toValue, {
-        duration: 100,
-        easing: Easing.linear,
-      }),
-      2,
-      true,
-    );
+  const animate = (toValue: {
+    rotateY: number;
+    width: number;
+    height: number;
+  }) => {
+    //console.debug('toValue: ', toValue);
 
-    width.value = Constants.S_WIDTH;
-    width.value = withRepeat(
-      withTiming(Constants.S_WIDTH - 16, {
-        duration: 100,
-        easing: Easing.linear,
-      }),
-      2,
-      true,
-    );
+    //rotateY.value = type == 'in' ? toValue : 0;
+    rotateY.value = withTiming(toValue.rotateY, {
+      duration: 100,
+      easing: Easing.linear,
+    });
 
-    height.value = Constants.TAB_HEIGHT_F;
-    height.value = withRepeat(
-      withTiming(Constants.TAB_HEIGHT_F - 4, {
-        duration: 100,
-        easing: Easing.linear,
-      }),
-      2,
-      true,
-    );
+    //width.value = Constants.S_WIDTH;
+    width.value = withTiming(toValue.width, {
+      duration: 100,
+      easing: Easing.linear,
+    });
+
+    //height.value = Constants.TAB_HEIGHT_F;
+    height.value = withTiming(toValue.height, {
+      duration: 100,
+      easing: Easing.linear,
+    });
   };
 
-  const _onClick = (label: string) => {
-    let toValue = 0;
+  const _onClick = (label: string, type: 'in' | 'out') => {
+    let toValue = {
+      rotateY: 0,
+      width: type === 'in' ? Constants.S_WIDTH - 16 : Constants.S_WIDTH,
+      height:
+        type === 'in' ? Constants.TAB_HEIGHT_F - 4 : Constants.TAB_HEIGHT_F,
+    };
+
     if (label === 'Home') {
-      toValue = -25;
+      toValue.rotateY = type === 'in' ? -25 : 0;
     } else if (label === 'Search') {
-      toValue = 0;
+      toValue.rotateY = 0;
     } else if (label === 'Settings') {
-      toValue = 25;
+      toValue.rotateY = type === 'in' ? 25 : 0;
     }
     animate(toValue);
   };
