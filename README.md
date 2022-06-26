@@ -1,3 +1,3 @@
 # RNTabBars
 
-[![React Native Dot inversion slider Youtube tutorial](res/microInteractionTabs.gif)]
+[![microInteractionTabs](res/microInteractionTabs.gif)]
