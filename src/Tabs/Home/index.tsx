@@ -12,7 +12,7 @@ const Home: FC = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'red',
+    backgroundColor: '#d8fa08',
     alignItems: 'center',
     justifyContent: 'center',
   },

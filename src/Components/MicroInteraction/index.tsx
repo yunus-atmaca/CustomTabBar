@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     height: Constants.TAB_HEIGHT_B,
     width: Constants.S_WIDTH,
-    backgroundColor: '#cdd1e4',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },

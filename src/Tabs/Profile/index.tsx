@@ -12,7 +12,7 @@ const Profile: FC = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'red',
+    backgroundColor: '#c2f970',
     alignItems: 'center',
     justifyContent: 'center',
   },

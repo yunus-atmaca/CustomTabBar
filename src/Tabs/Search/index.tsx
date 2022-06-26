@@ -12,7 +12,7 @@ const Search: FC = ({}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'red',
+    backgroundColor: '#ff9470',
     alignItems: 'center',
     justifyContent: 'center',
   },
