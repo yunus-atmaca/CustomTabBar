@@ -1,5 +1,5 @@
-import React, {FC, useEffect, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {FC, useCallback, useEffect, useRef, useState} from 'react';
+import {StyleSheet, View, TouchableOpacity, Image} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import Svg, {Path} from 'react-native-svg';
 import Animated, {
@@ -9,7 +9,6 @@ import Animated, {
   Easing,
   runOnJS,
   useAnimatedStyle,
-  withDelay,
 } from 'react-native-reanimated';
 
 import {Constants} from '../../utils';
@@ -26,14 +25,31 @@ const U_D = 100;
 const TAB_HEIGHT_F = 12 * 6;
 const TAB_WIDTH_F = Constants.S_WIDTH - 48;
 
+type TAB_STATUS =
+  | 'CLOSED'
+  | 'OPENING'
+  | 'EXTENDING'
+  | 'COLLAPSING'
+  | 'OPENED'
+  | 'CLOSING';
+
 const Liquid: FC<BottomTabBarProps> = ({}) => {
   const mul = useRef(1);
+  //const status = useRef<TAB_STATUS>('CLOSED');
+
+  const [status, setStatus] = useState<TAB_STATUS>('CLOSED');
 
   const plusY = useSharedValue(0);
   const width = useSharedValue((TAB_HEIGHT_F / 4) * 3);
-  const animatedPlus = useAnimatedStyle(() => {
+
+  const animatedPlusY = useAnimatedStyle(() => {
     return {
       transform: [{translateY: plusY.value}],
+    };
+  });
+
+  const animatedPlusW = useAnimatedStyle(() => {
+    return {
       width: width.value,
     };
   });
@@ -68,18 +84,39 @@ const Liquid: FC<BottomTabBarProps> = ({}) => {
   });
 
   useEffect(() => {
-    animationPath();
-    animationPlusY();
     return () => {
       Q1.value = 2;
       Q2.value = 3;
 
       plusY.value = 0;
       width.value = (TAB_HEIGHT_F / 4) * 3;
+
+      setStatus('CLOSED');
     };
   }, []);
 
-  const animationPlusY = () => {
+  const OpeningAnimationPlus = () => {
+    const onFinishPlusY = () => {
+      const onFinishPlusW = () => {
+        setStatus('OPENED');
+      };
+
+      setTimeout(() => {
+        setStatus('EXTENDING');
+        width.value = withTiming(
+          (TAB_WIDTH_F / 4) * 3,
+          {
+            duration: U_D * 2.5,
+            easing: Easing.linear,
+          },
+          () => {
+            'worklet';
+            runOnJS(onFinishPlusW)();
+          },
+        );
+      }, 75);
+    };
+
     plusY.value = withTiming(
       -4 * V,
       {
@@ -88,22 +125,56 @@ const Liquid: FC<BottomTabBarProps> = ({}) => {
       },
       () => {
         'worklet';
-        runOnJS(animPlusW)();
+        runOnJS(onFinishPlusY)();
       },
     );
   };
 
-  const animPlusW = () => {
-    width.value = withDelay(
-      75,
-      withTiming((TAB_WIDTH_F / 4) * 3, {
+  const ClosingAnimationPlus = () => {
+    const onFinishPlusW = () => {
+      setTimeout(() => {
+        plusY.value = withTiming(0, {
+          duration: U_D * 2.5,
+          easing: Easing.linear,
+        });
+
+        Q1.value = withTiming(2, {
+          duration: U_D * 2.5,
+          easing: Easing.linear,
+        });
+
+        const q2Finished = () => {
+          setStatus('CLOSED');
+        };
+
+        Q2.value = withTiming(
+          3,
+          {
+            duration: U_D * 2.5,
+            easing: Easing.linear,
+          },
+          () => {
+            'worklet';
+            runOnJS(q2Finished)();
+          },
+        );
+      }, 75);
+    };
+
+    width.value = withTiming(
+      (TAB_HEIGHT_F / 4) * 3,
+      {
         duration: U_D * 2.5,
         easing: Easing.linear,
-      }),
+      },
+      () => {
+        'worklet';
+        runOnJS(onFinishPlusW)();
+      },
     );
   };
 
-  const animationPath = () => {
+  const OpeningAnimationPath = () => {
     Q1.value = withTiming(0, {
       duration: U_D * 2.5,
       easing: Easing.linear,
@@ -150,9 +221,23 @@ const Liquid: FC<BottomTabBarProps> = ({}) => {
     }
 
     mul.current *= -1;
-    //console.debug('returnVal: ', returnVal);
     return returnVal;
   };
+
+  const openingAnim = useCallback(() => {
+    if (status === 'CLOSED') {
+      setStatus('OPENING');
+      OpeningAnimationPath();
+      OpeningAnimationPlus();
+    }
+  }, [status]);
+
+  const closingAnim = useCallback(() => {
+    if (status === 'OPENED') {
+      setStatus('CLOSING');
+      ClosingAnimationPlus();
+    }
+  }, [status]);
 
   return (
     <View style={styles.container}>
@@ -169,19 +254,64 @@ const Liquid: FC<BottomTabBarProps> = ({}) => {
               height: TAB_HEIGHT_F + (TAB_HEIGHT_F / 4) * 3,
               //backgroundColor: 'gray',
             }}>
-            <AnimatedPath
-              animatedProps={animatedProps}
-              //stroke="blue"
-              //strokeWidth={1}
-              fill="white"
-              //fillRule="evenodd"
-            />
+            <AnimatedPath animatedProps={animatedProps} fill="white" />
           </Svg>
         }
       </View>
-      <View style={styles.plusContainer}>
-        <Animated.View style={[styles.plus, animatedPlus]}></Animated.View>
+      <View style={styles.tabContainer}>
+        <View style={styles.tab}>
+          <Image
+            source={require('../../../res/home50.png')}
+            style={styles.tabIcon}
+          />
+        </View>
+        <View style={styles.tab}>
+          <Image
+            source={require('../../../res/user48.png')}
+            style={styles.tabIcon}
+          />
+        </View>
       </View>
+      <TouchableOpacity activeOpacity={1} style={styles.plusContainer}>
+        <Animated.View style={[styles.plus, animatedPlusY, animatedPlusW]}>
+          {status === 'CLOSED' && (
+            <TouchableOpacity
+              onPress={openingAnim}
+              activeOpacity={0.7}
+              style={styles.iconContainer}>
+              <Image
+                source={require('../../../res/plus64.png')}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          )}
+          {(status === 'EXTENDING' || status === 'OPENED') && (
+            <Animated.View style={[styles.iconsContainer, animatedPlusW]}>
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../../res/music48.png')}
+                  style={styles.icon}
+                />
+              </View>
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../../res/search50.png')}
+                  style={styles.icon}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={closingAnim}
+                activeOpacity={0.7}
+                style={styles.iconContainer}>
+                <Image
+                  source={require('../../../res/close50.png')}
+                  style={styles.icon}
+                />
+              </TouchableOpacity>
+            </Animated.View>
+          )}
+        </Animated.View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -204,11 +334,11 @@ const styles = StyleSheet.create({
   },
   plusContainer: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: Constants.S_WIDTH / 3,
+    right: Constants.S_WIDTH / 3,
     top: 0,
     height: TAB_HEIGHT_F,
-    //backgroundColor: 'blue',
+    //backgroundColor: 'green',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -216,6 +346,50 @@ const styles = StyleSheet.create({
     height: (TAB_HEIGHT_F / 4) * 3,
     borderRadius: TAB_HEIGHT_F,
     backgroundColor: '#4C1345',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    width: TAB_HEIGHT_F / 2,
+    height: TAB_HEIGHT_F / 2,
+    borderRadius: TAB_HEIGHT_F,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+  },
+  tabContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: TAB_HEIGHT_F / 2,
+    height: TAB_HEIGHT_F,
+    //backgroundColor: 'blue',
+    paddingHorizontal: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  tab: {
+    width: 48,
+    height: TAB_HEIGHT_F,
+    //backgroundColor: 'red',
+    borderRadius: TAB_HEIGHT_F,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabIcon: {
+    width: 36,
+    height: 36,
   },
 });
 
