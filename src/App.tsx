@@ -6,14 +6,14 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 const Tab = createBottomTabNavigator();
 
 import {Home, Profile, Search} from './Tabs';
-import {MicroInteractionTabs} from './Components';
+import {MicroInteractionTabs, Liquid} from './Components';
 const App = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <NavigationContainer>
         <SafeAreaView style={{flex: 1}}>
           <Tab.Navigator
-            tabBar={props => <MicroInteractionTabs {...props} />}
+            tabBar={props => <Liquid {...props} />}
             screenOptions={{headerShown: false}}>
             <Tab.Screen name="Home" component={Home} />
             <Tab.Screen name="Search" component={Search} />

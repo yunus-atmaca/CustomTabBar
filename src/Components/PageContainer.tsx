@@ -12,7 +12,7 @@ const PageContainer: FC<Props & ViewProps> = props => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: Constants.TAB_HEIGHT,
+    paddingBottom: Constants.TAB_HEIGHT_B,
   },
 });
 

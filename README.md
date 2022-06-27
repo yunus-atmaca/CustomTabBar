@@ -1,3 +1,3 @@
 # RNTabBars
 
-![](res/microInteractionTabs.gif)
+![](res/tabV1.gif)
